@@ -1,0 +1,27 @@
+---
+- name: Gather netapp volume information
+  netapp.ontap.na_ontap_info:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    https: yes
+    validate_certs: no
+    gather_subset:
+      - volume_info
+    query:
+      volume-attributes:
+        volume-id-attributes:
+          name: "{{ netapp_volume_name }}"
+          owning_vserver_name: "{{ netapp_vserver }}"
+    desired_attributes:
+      volume-attributes:
+        volume-space-attributes:
+          size:
+  register: vol_info
+
+- set_fact:
+    vol_attr: "{{ netapp_volume_name }}:{{ netapp_vserver }}"
+
+- name: set facts for {{ netapp_volume_name }} info
+  set_fact:
+    volume_size:  "{{ vol_info.ontap_info.volume_info[vol_attr].volume_space_attributes.size | int / 1024 | int / 1024 | int / 1024 }}"

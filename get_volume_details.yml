@@ -1,0 +1,24 @@
+---
+- assert:
+    that:
+      - netapp_cluster_ip is defined
+      - netapp_vserver is defined
+      - volume_name is defined
+      - netapp_username is defined
+      - netapp_password is defined
+
+- name: Gather netapp volume information from {{ netapp_vserver }}
+  netapp.ontap.na_ontap_info:
+    hostname: "{{ netapp_cluster_ip }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    https: yes
+    validate_certs: no
+    vserver: "{{ netapp_vserver }}"
+    gather_subset:
+      - volume_info
+    query:
+      volume-attributes:
+        volume-id-attributes:
+          name: "{{ volume_name }}"
+  register: volume_info

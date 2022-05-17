@@ -1,0 +1,23 @@
+---
+- assert:
+    that:
+      - netapp_cluster_ip is defined
+      - netapp_vserver is defined
+      - export_policy_name is defined
+      - netapp_username is defined
+      - netapp_password is defined
+
+- name: Get all the policy rules from {{ export_policy_name }} at vserver {{ netapp_vserver }}
+  netapp.ontap.na_ontap_info:
+    hostname: "{{ netapp_cluster_ip }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    https: yes
+    validate_certs: no
+    vserver: "{{ netapp_vserver }}"
+    gather_subset: export_rule_info
+    query:
+      export-rule-info:
+        policy-name: "{{ export_policy_name }}"
+  register: export_policy_rules
+

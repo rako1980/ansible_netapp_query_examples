@@ -1,0 +1,41 @@
+---
+- assert:
+    that:
+      - netapp_hostname is defined
+      - netapp_vserver is defined
+      - netapp_volume_desired_size is defined
+      - netapp_volume_name is defined
+      - netapp_username is defined
+      - netapp_password is defined
+    msg: "one or multiple parameters missing"
+
+- name: Get the current volume size
+  include_tasks: volume_size_info.yml 
+
+- debug:
+    msg: "INFO: Size before expansion: {{ volume_size }} GB"
+
+- debug:
+    msg: "WARNING: New size is less than the curent size. Volume size will not be changed."
+  when:
+    volume_size | int > netapp_volume_desired_size | int
+
+- name: Resize the volume
+  na_ontap_volume:
+    name: "{{ netapp_volume_name }}"
+    size: "{{ netapp_volume_desired_size | int }}"
+    size_unit: gb
+    vserver: "{{ netapp_vserver }}"
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    https: true
+    validate_certs: false
+  when:
+    volume_size | int < netapp_volume_desired_size | int
+
+- name: Get the new volume size
+  include_tasks: volume_size_info.yml
+
+- debug:
+    msg: "INFO: New volume size: {{ volume_size }} GB"
